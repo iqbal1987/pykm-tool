@@ -15,7 +15,7 @@ class Node:
     bcol=None # (0,0,0) black
     pred=None
     succ=None
-    x=0
+    x=1
     y=0
     textFont="Arial"
     textStyle="Normal"
