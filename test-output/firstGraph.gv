@@ -1,0 +1,9 @@
+// Node Graph
+digraph {
+	1 [label=Node1]
+	2 [label="Node2
+Node4"]
+	3 [label=Node3]
+	1 -> 2
+	1 -> 3
+}
