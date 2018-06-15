@@ -10,7 +10,7 @@ class DraggableRectangle:
     lock = None  # only one can be animated at a time
     nheads=None
     ntails=None
-    def __init__(self, rect,rID=None,nheads=None,ntails=None,aH=None):
+    def __init__(self, rect,rID=None,nheads=None,ntails=None,aH=None,tH=None):
         self.rect = rect
         self.press = None
         self.background = None
@@ -18,6 +18,7 @@ class DraggableRectangle:
         self.nheads=nheads
         self.ntails=ntails
         self.aH=aH
+        self.tH=tH
         self.xyFirst=self.rect.xy
 
     def connect(self):
@@ -35,7 +36,7 @@ class DraggableRectangle:
         if DraggableRectangle.lock is not None: return
         contains, attrd = self.rect.contains(event)
         if not contains: return
-        print('event contains', self.rect.xy)
+        ##print('event contains', self.rect.xy)
         x0, y0 = self.rect.xy
         self.press = x0, y0, event.xdata, event.ydata
         DraggableRectangle.lock = self
@@ -44,11 +45,15 @@ class DraggableRectangle:
         canvas = self.rect.figure.canvas
         axes = self.rect.axes
         self.rect.set_animated(True)
+        if self.ID is not None:
+            self.tH[self.ID-1].set_animated(True)
         canvas.draw()
         self.background = canvas.copy_from_bbox(self.rect.axes.bbox)
 
         # now redraw just the rectangle
         axes.draw_artist(self.rect)
+        if self.ID is not None: 
+            axes.draw_artist(self.tH[self.ID-1])
 
         # and blit just the redrawn area
         canvas.blit(axes.bbox)
@@ -63,6 +68,10 @@ class DraggableRectangle:
         dy = event.ydata - ypress
         self.rect.set_x(x0+dx)
         self.rect.set_y(y0+dy)
+        if self.ID is not None:
+            print(self.rect.get_width()/2)
+            self.tH[self.ID-1].set_x(x0+dx+self.rect.get_width()/2)
+            self.tH[self.ID-1].set_y(y0+dy+self.rect.get_height()/2)
 
         canvas = self.rect.figure.canvas
         axes = self.rect.axes
@@ -71,6 +80,8 @@ class DraggableRectangle:
 
         # redraw just the current rectangle
         axes.draw_artist(self.rect)
+        if self.ID is not None: 
+            axes.draw_artist(self.tH[self.ID-1])
 
         # blit just the redrawn area
         canvas.blit(axes.bbox)
@@ -85,6 +96,8 @@ class DraggableRectangle:
 
         # turn off the rect animation property and reset the background
         self.rect.set_animated(False)
+        if self.ID is not None:
+                self.tH[self.ID-1].set_animated(False)
         self.background = None
 
     # try arrow
@@ -95,7 +108,170 @@ class DraggableRectangle:
         nxyabc=(nx[0]+nw/2,nx[1]) #abc=above center
         nxybec=(nx[0]+nw/2,nx[1]+nh) # bec below center
         ncenter=(nx[0]+nw/2,nx[1]+nh/2)
-        print(nx)
+        ##print(nx)
+
+        # Old xy of rectangle
+        ox=self.xyFirst
+        oxyabc=(ox[0]+nw/2,ox[1])
+        oxybec=(ox[0]+nw/2,ox[1]+nh) # bec below center
+        ocenter=(ox[0]+nw/2,ox[1]+nh/2)
+
+        if not(self.ID==None):
+            e_id_head=self.nheads[self.ID]
+            e_id_tail=self.ntails[self.ID]
+            #print(self.nheads)
+            #print(e_id_head)
+            #print(self.ntails)
+            #print(e_id_tail)
+            #print([self.aH[j] for j in e_id_tail])
+            #print([self.aH[j] for j in e_id_head])
+            if not(e_id_head==[]):
+                #print('Head Exists')
+                for j in e_id_head:
+                    hxyOld_cp=self.aH[j].n[:,-1]
+                    #print(self.aH[j].n)
+                    self.aH[j].n[0,-1]=nxybec[0]
+                    self.aH[j].n[1,-1]=nxybec[1]
+                    self.aH[j].bzcalc()
+                    #print(self.aH[j].ang)
+                    #print(self.aH[j].arrowDir)
+                    self.aH[j].updateArrow()
+                #print(hxyOld_cp)
+            #print(oxyabc)
+            #print(oxybec)
+            #print(nxyabc)
+            #print(nxybec)
+            if not(e_id_tail==[]):
+                #print('Tail Exists')
+                for j in e_id_tail:
+                    hxyOld_cp=self.aH[j].n[:,-1]
+                    #print(self.aH[j].n)
+                    self.aH[j].n[0,0]=nxyabc[0]
+                    self.aH[j].n[1,0]=nxyabc[1]
+                    self.aH[j].bzcalc()
+                    #print(self.aH[j].ang)
+                    #print(self.aH[j].arrowDir)
+                    self.aH[j].updateArrow()
+
+            
+
+        # redraw the full figure
+        self.rect.figure.canvas.draw()
+        #self.xyFirst=self.rect.xy
+
+
+    def disconnect(self):
+        'disconnect all the stored connection ids'
+        self.rect.figure.canvas.mpl_disconnect(self.cidpress)
+        self.rect.figure.canvas.mpl_disconnect(self.cidrelease)
+        self.rect.figure.canvas.mpl_disconnect(self.cidmotion)
+
+# -------------------------------------------------------------
+# Draggable Text as a textbox
+# -------------------------------------------------------------
+class DraggableText:
+    lock = None  # only one can be animated at a time
+    nheads=None
+    ntails=None
+    def __init__(self, rect,rID=None,nheads=None,ntails=None,aH=None,tH=None):
+        self.rect = rect
+        self.press = None
+        self.background = None
+        self.ID=rID
+        self.nheads=nheads
+        self.ntails=ntails
+        self.aH=aH
+        self.xyFirst=self.rect.get_position()
+
+    def connect(self):
+        'connect to all the events we need'
+        self.cidpress = self.rect.figure.canvas.mpl_connect(
+            'button_press_event', self.on_press)
+        self.cidrelease = self.rect.figure.canvas.mpl_connect(
+            'button_release_event', self.on_release)
+        self.cidmotion = self.rect.figure.canvas.mpl_connect(
+            'motion_notify_event', self.on_motion)
+
+    def on_press(self, event):
+        'on button press we will see if the mouse is over us and store some data'
+        if event.inaxes != self.rect.axes: return
+        if DraggableText.lock is not None: return
+        contains, attrd = self.rect.contains(event)
+        if not contains: return
+        print('event contains', self.rect.get_position())
+        x0, y0 = self.rect.get_position()
+        self.press = x0, y0, event.xdata, event.ydata
+        DraggableRectangle.lock = self
+
+        # draw everything but the selected rectangle and store the pixel buffer
+        canvas = self.rect.figure.canvas
+        axes = self.rect.axes
+        self.rect.set_animated(True)
+        if ID is not None:
+            self.tH[ID].set_animated(True)
+        canvas.draw()
+        self.background = canvas.copy_from_bbox(self.rect.axes.bbox)
+
+        # now redraw just the rectangle
+        axes.draw_artist(self.rect)
+        if ID is not None:
+            axes.draw_artist(self.tH[ID])
+            
+
+        # and blit just the redrawn area
+        canvas.blit(axes.bbox)
+
+    def on_motion(self, event):
+        'on motion we will move the rect if the mouse is over us'
+        if DraggableRectangle.lock is not self:
+            return
+        if event.inaxes != self.rect.axes: return
+        x0, y0, xpress, ypress = self.press
+        dx = event.xdata - xpress
+        dy = event.ydata - ypress
+        self.rect.set_x(x0+dx)
+        self.rect.set_y(y0+dy)
+        if ID is not None:
+            self.tH[ID].set_x(x0+dx)
+            self.tH[ID].set_y(y0+dy)
+
+        canvas = self.rect.figure.canvas
+        axes = self.rect.axes
+        # restore the background region
+        canvas.restore_region(self.background)
+
+        # redraw just the current rectangle
+        axes.draw_artist(self.rect)
+        if ID is not None: 
+            axes.draw_artist(self.tH[ID])
+
+        # blit just the redrawn area
+        canvas.blit(axes.bbox)
+
+    def on_release(self, event):
+        'on release we reset the press data'
+        if DraggableRectangle.lock is not self:
+            return
+
+        self.press = None
+        DraggableRectangle.lock = None
+
+        # turn off the rect animation property and reset the background
+        self.rect.set_animated(False)
+        if ID is not None:
+                self.tH[ID].set_animated(False)
+        self.background = None
+
+    # try arrow
+        #current xy and center of rectangle
+        bbp=self.rect.get_bbox_patch().get_extents()
+        nx=self.rect.get_position()
+        nw=bbp.width
+        nh=bbp.height
+        nxyabc=(nx[0]+nw/2,nx[1]) #abc=above center
+        nxybec=(nx[0]+nw/2,nx[1]+nh) # bec below center
+        ncenter=(nx[0]+nw/2,nx[1]+nh/2)
+        print(nw)
 
         # Old xy of rectangle
         ox=self.xyFirst
@@ -152,6 +328,10 @@ class DraggableRectangle:
         self.rect.figure.canvas.mpl_disconnect(self.cidpress)
         self.rect.figure.canvas.mpl_disconnect(self.cidrelease)
         self.rect.figure.canvas.mpl_disconnect(self.cidmotion)
+
+
+
+
 
 if __name__=='__main__1':
     fig = plt.figure()

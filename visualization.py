@@ -78,7 +78,7 @@ class VisualizeOnto:
             else:
                 txtLines.append(line)
 
-        #print(txtLines)
+        print(txtLines)
             
         for line in txtLines:
             l=line.split()
@@ -90,6 +90,9 @@ class VisualizeOnto:
                     g['h']=float(l[3])
             if l0=='node':
                     m=re.search(r'["](.*?)["]',line)
+                    #k=re.search(r'(?P<name>\w+) (?P<id>.*?) (?P<x>.*?) (?P<y>.*?) (?P<w>.*?) (?P<h>.*?) ["](?P<txt>\w+)["] (?P<sty>\w+) (?P<shp>\w+) (?P<col>\w+) (?P<fcol>\w+)',line)
+                    k=re.search(r'(?P<name>\w+)\s(?P<iid>.*?)\s(?P<x>.*?)\s(?P<y>.*?)\s(?P<w>.*?)\s(?P<h>.*?)\s"?(?P<txti>.*[^"]?)\s.*?',line)
+                    print(k.groupdict())
                     if m:
                         qtxt=m.group(1)
                         #print(qtxt)
@@ -156,7 +159,8 @@ if __name__=="__main__":
     v.makeLayout()
     v.readLayout()
     v.plotLayout()
-    
+    #for i in v.n:
+    #    print(v.n[i])
     
     #inpPath=v.makeLayout()
     #v.readLayout(inpPath)

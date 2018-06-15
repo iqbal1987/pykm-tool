@@ -16,13 +16,13 @@ class bezierArrow:
         self.arrowDir=arrowDir
         self.num_pts=num_pts
         self.ax=ax
+        self.n=self.xy #np.asfortranarray([self.xy[0,:],self.xy[1,:],])
         self.bzcalc(True)
 
-    def bzcalc(self,addBool=False):
-        self.n=self.xy #np.asfortranarray([self.xy[0,:],self.xy[1,:],])
+    def bzcalc(self,addBool=False): 
         self.c=bezier.Curve(self.n,degree=2)
         p=self.c.evaluate_multi(np.linspace(0.0,1.0,self.num_pts))
-        npts=5
+        npts=int(0.1*100) # same proportion as the wedge radius
         if self.arrowDir=='start':
             ang=np.arctan2((p[1,npts]-p[1,0]),(p[0,npts]-p[0,0]))*180/np.pi
             self.tip=(p[0,0],p[1,0])
