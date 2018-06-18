@@ -14,8 +14,9 @@ class VisualizeOnto:
         self.g={}
         self.n={}
         self.e={}
+        self.nodeShape='box'
 
-    def createDot(self,nList=None,adjMat=None,cmt='Node Graph',fmt='plain',verbose=False):
+    def createExampleDot(self,nList=None,adjMat=None,cmt='Node Graph',fmt='plain',verbose=False):
         self.dot=Digraph(comment=cmt,format=fmt,engine=None)
         self.dot.edge_attr.update(arrowhead='none',tailhead='none',dir='none') # forward back both none
         self.dot.node_attr.update(shape='box')
@@ -25,6 +26,24 @@ class VisualizeOnto:
         self.dot.node('4','Node5 is a \nnode\n bla\nbla\nbla') # Fixed: caveat: cannot use keyword node. replace node by something in postprocessing of input text and replace it back.
         self.dot.edges(['12','13'])
         self.dot.edge('3','4')
+        if verbose:
+            print(self.dot.source)
+
+    def createDot(self,nList=None,adjMat=None,cmt='Node Graph',fmt='plain',verbose=False):
+        self.dot=Digraph(comment=cmt,format=fmt,engine=None)
+        self.dot.edge_attr.update(arrowhead='none',tailhead='none',dir='none') # forward back both none
+        self.dot.node_attr.update(shape=self.nodeShape)
+        if nList:
+            ncnt=1
+            for i in nList:
+                self.dot.node(str(ncnt),str(i))
+                ncnt+=1
+        if nList and (adjMat is not None):
+            for i in range(np.size(adjMat,1)):
+                for j in np.nonzero(adjMat[i]):
+                    if (j.size):
+                        for k in j:
+                            self.dot.edge(str(i+1),str(k+1))
         if verbose:
             print(self.dot.source)
             
@@ -89,16 +108,25 @@ class VisualizeOnto:
                     g['w']=float(l[2])
                     g['h']=float(l[3])
             if l0=='node':
-                    m=re.search(r'["](.*?)["]',line)
-                    #k=re.search(r'(?P<name>\w+) (?P<id>.*?) (?P<x>.*?) (?P<y>.*?) (?P<w>.*?) (?P<h>.*?) ["](?P<txt>\w+)["] (?P<sty>\w+) (?P<shp>\w+) (?P<col>\w+) (?P<fcol>\w+)',line)
-                    k=re.search(r'(?P<name>\w+)\s(?P<iid>.*?)\s(?P<x>.*?)\s(?P<y>.*?)\s(?P<w>.*?)\s(?P<h>.*?)\s"?(?P<txti>.*[^"]?)\s.*?',line)
-                    print(k.groupdict())
+                    m=re.search(r'["](.*?)["]',line) # add \\n in linestore+=line+' ' and escape all slashes here to preserve \n latex commands etc.
+                    if m:
+                        line=re.sub(r'"(.*?)"','Qtext',line)
+                        #print(line)
+                    k=re.search(r'(?P<name>\w+) (?P<id>.*?) (?P<x>.*?) (?P<y>.*?) (?P<w>.*?) (?P<h>.*?) (?P<txt>\w+) (?P<sty>\w+) (?P<shp>\w+) (?P<col>\w+) (?P<fcol>\w+)',line)
+                        #k=re.search(r'(?P<name>\w+) (?P<id>.*?) (?P<x>.*?) (?P<y>.*?) (?P<w>.*?) (?P<h>.*?) ["](?P<txt>\w+)["] (?P<sty>\w+) (?P<shp>\w+) (?P<col>\w+) (?P<fcol>\w+)',line)
+                        #k=re.search(r'(?P<name>\w+)\s(?P<iid>.*?)\s(?P<x>.*?)\s(?P<y>.*?)\s(?P<w>.*?)\s(?P<h>.*?)\s("?(?P<txti>.*[^"]?))\s.*?',line)
+                        #k=re.search(r'(?P<name>\w+)\s(?P<iid>.*?)\s(?P<x>.*?)\s(?P<y>.*?)\s(?P<w>.*?)\s(?P<h>.*?)(?<="\s)([^"]+)(?="\s).*?',line)
+                        #print(k.groupdict())
                     if m:
                         qtxt=m.group(1)
                         #print(qtxt)
                     else:
-                        qtxt=l[6]        
-                    n.update({int(l[1]):{'xy':[float(l[2]),float(l[3])],'w':float(l[4]),'h':float(l[5]),'txt':qtxt, 'style':l[7], 'shape':l[8],'color':l[9],'fillcolor':l[10]}})
+                        qtxt=l[6]
+                        #print(k.groupdict()['txt'])
+                    #n.update({int(l[1]):{'xy':[float(l[2]),float(l[3])],'w':float(l[4]),'h':float(l[5]),'txt':qtxt, 'style':l[7], 'shape':l[8],'color':l[9],'fillcolor':l[10]}})
+                    n.update({int(k.groupdict()['id']):{'xy':[float(k.groupdict()['x']),float(k.groupdict()['y'])]
+                            ,'w':float(k.groupdict()['w']),'h':float(k.groupdict()['h']),'txt':qtxt, 'style':k.groupdict()['sty']
+                            , 'shape':k.groupdict()['shp'],'color':k.groupdict()['col'],'fillcolor':k.groupdict()['fcol']}})
             if l0=='edge':
                     #print(l)
                     e_nn=[]
@@ -112,7 +140,7 @@ class VisualizeOnto:
                     e.update({ecnt:{'tail':int(l[1]),'head':int(l[2]),'n':int(l[3]),'pts':e_nn,'labelxy':None,'style':l[4+e_n*2],'color':l[4+(e_n*2)+1]}})
                     ecnt+=1
         #print(g)
-        #print(n)
+        print(n)
         #print(e)
         self.g=g
         self.n=n
@@ -121,7 +149,7 @@ class VisualizeOnto:
     def getLayout(self):
         return self.g,self.n,self.e
         
-    def plotLayout(self):
+    def plotLayout(self): # static plot
         g=self.g
         n=self.n
         e=self.e
@@ -134,7 +162,8 @@ class VisualizeOnto:
         for i in range(len(n)):
             xcorner=n[i+1]['xy'][0]-n[i+1]['w']*0.5
             ycorner=n[i+1]['xy'][1]-n[i+1]['h']*0.5
-            nH=plt.Rectangle((xcorner,ycorner),n[i+1]['w'],n[i+1]['h'])
+            nH=plt.Rectangle((xcorner,ycorner),n[i+1]['w'],n[i+1]['h'],alpha=0.35)
+            nt=plt.text(n[i+1]['xy'][0],n[i+1]['xy'][1],n[i+1]['txt'],color='black')
             #print(i)
             ax.add_patch(nH)
             nodeHandle.append(nH)
@@ -155,10 +184,23 @@ class VisualizeOnto:
 
 if __name__=="__main__":
     v=VisualizeOnto()
-    v.createDot()
+    v.createExampleDot()
+    v.makeLayout()
+    v.readLayout()
+
+    nList=['1','2','3','4','5']
+    adj=np.zeros((5,5))
+    adj[0,3]=1
+    adj[0,2]=1
+    adj[2,4]=1
+    adj[1,4]=1
+    v.createDot(nList,adj,verbose=True)
+    
     v.makeLayout()
     v.readLayout()
     v.plotLayout()
+
+    
     #for i in v.n:
     #    print(v.n[i])
     

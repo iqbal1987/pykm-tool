@@ -74,6 +74,12 @@ ar=DraggableText(txt2)
 ar.connect()
 
 
+# getCurrentPositions of all objects and store them (make a separate function of the class)
+# rH,aH,tH
+# for not losing the position data of the nodes (deliberatly changed by the user
+# node id, edge id preserve as far as possible. before reading the new dot file.
+
+
 # Plot the axis + setup bleed gap in the edges
 bleedw=g['scale']*g['w']*0.1
 bleedh=g['scale']*g['h']*0.1

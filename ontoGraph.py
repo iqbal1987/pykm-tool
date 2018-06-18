@@ -35,14 +35,17 @@ class OntoGraph:
     textSize=10
     
     baseNode=None
-    nList=[]
-    nodes={'pro':(),
-          'fun':(),
-          'att':()
-          }
     dynProp={}
             
     def __init__(self,baseNode="Thing",name="Graph Name"):
+        self.nList=[]
+        # objects or features. Every node has properties{elec:,mech:,chem:}
+        # , function, attribute, effect(electrical:{loss},chemical:{interaction,oxidation,pittingcorrosion},mechanical:{friction,}) and so on.
+        self.adjMat=[]
+        self.nodes={'pro':(),
+                    'fun':(),
+                    'att':()
+                    }
         self.name=name
         self.baseNode=baseNode
         self.nList.append(Node(baseNode))
@@ -118,13 +121,21 @@ class OntoGraph:
     
     def update(self):
         # update something
+        # getAdjacency
+        # pass to visualize
+        # update plot
         pass
         
     def plot(self,canvas):
         pass
 
     def getAdjacency(self):
-        pass # return adjacencyMatrix, nList
+        pass
+    # return adjacencyMatrix, nList
+    # choose for adjacency with prooperties as nodes, fuctions as nodes
+    # obj->func->propn obj->prop, relTo->obj, relTo->func
+    # obj(function)->prop-relTo->obj2
+    # gviz Record with named frames for functions. prps as separate nodes
 
     def getIncidence(self):
         pass

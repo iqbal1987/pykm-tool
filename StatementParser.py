@@ -14,6 +14,11 @@ class SParser:
     # Delimiter
     delimiter=';'
 
+    s_hints={0:'Statement omitted.',
+             1:'Statements should not start with a keyword.\n',
+             2:'Start with an object name or property name.\n',
+             }
+    
     # dummy input
     a='FESS is-a Thing; FESS has property energyCapacity[E];'
     c='rotor is-a sub-component-of FESS and is related-to motor'
@@ -58,34 +63,51 @@ class SParser:
         #print(a)
         #return a
         
-    def genToken(self):
+    def genToken(self,a=None,delimitBool=False):
+        if not(a==None):
+            if not delimitBool:
+                self.a=a
+            else:
+                self.a=self.delimit(a)
+
     # text parsing
         Token=collections.namedtuple('Token',['typ','value','level'])
-        y=[]
-        for mo in re.finditer(self.tregx,self.a):
-            k=mo.lastgroup
-            v=mo.group(k)
-            #print(k)
-            if k=='ID':
-                k=v
-            if v in self.k1:
-               level='k1'
-               k='k'
-            elif v in self.k2:
-               level='k2'
-            elif v in self.c1:
-               level='c1'
-            else:
-               level=0
-            if k=='PROP':
-                level=1    
-            y.append(Token(k,v,level))
-        print([yy.level for yy in y])
-        
+        y={}
+        p=[]
+        for i in range(len(self.a)):
+            p=[]
+            for mo in re.finditer(self.tregx,self.a[i]):
+                k=mo.lastgroup
+                v=mo.group(k)
+                #print(v)
+                if k=='ID':
+                    k=v
+                if v in self.k1:
+                   level='k1'
+                   k='k'
+                elif v in self.k2:
+                   level='k2'
+                elif v in self.c1:
+                   level='c1'
+                else:
+                   level=0
+                if k=='PROP':
+                    level=1
+                p.append(Token(k,v,level))
+            y.update({i:p})    
+        #[print(y[yy]) for yy in y]
+        print([p.level for yy in y for p in y[yy]])
+        # some sanity check for statments: grammer rules
+        scnt=1
+        for w in y:
+            if not(y[w][0].level==0): # not boolean, just a zero char.
+                print('StatmentParser: Check statement %s. ' % str(scnt) +
+                      self.s_hints[1]+self.s_hints[2]+self.s_hints[0])
+            scnt+=1
 
 if __name__=="__main__":
     
-    a='FESS is-a Thing; FESS has property energyCapacity[E];'
+    a='FESS is-a Thing; FESS has property energyCapacity[E];has property bla;'
     sp=SParser(k=['comprises'])
     """
     sp.parse(a)
@@ -93,7 +115,7 @@ if __name__=="__main__":
     print(t)
     print(sp.keywords_SVO(t))
     """
-    sp.genToken()
+    sp.genToken(a,True)
 
     
         
