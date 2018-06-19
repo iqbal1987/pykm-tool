@@ -96,8 +96,9 @@ class VisualizeOnto:
                 qlinecnt=0
             else:
                 txtLines.append(line)
-
+    
         print(txtLines)
+        fileObj.close()
             
         for line in txtLines:
             l=line.split()

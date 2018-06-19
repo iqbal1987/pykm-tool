@@ -11,7 +11,7 @@ methods
 """
 from enum import Enum
 from node import Node
-from StatementParser import SParser as sp
+from StatementParser import SParser
 from callError import error
 
 class classID(Enum):
@@ -50,6 +50,12 @@ class OntoGraph:
         self.baseNode=baseNode
         self.nList.append(Node(baseNode))
         self.update()
+
+        self.SP=SParser()
+        self.currfilepath='test-output' # couldnot append a \ emits error. for now add insitu.
+        self.defaultfilname='New_og_file'
+        self.defaultfileext='.og'
+        self.lines=[]
             
     def __str__(self):
         return str(self.baseNode)+": OntoGraph Object"
@@ -58,7 +64,7 @@ class OntoGraph:
         return self.currLength
 
     def addNode(self,Nname="Node",p=None,s=None):
-        print(type(Nname))
+        #print(type(Nname))
         if type(Nname)==Node:
             if not(str(Nname) in [str(i) for i in self.nList]):
                 self.nList.append(Nname)
@@ -66,7 +72,7 @@ class OntoGraph:
             else:
                 error('Node '+str(Nname)+' already exists.')
         elif type(Nname)==str:
-            print([str(i) for i in self.nList])
+            #print([str(i) for i in self.nList])
             if not(Nname in [str(i) for i in self.nList]):
                 tmp=Node(name=Nname,pred=p,succ=s)
                 self.nList.append(tmp)
@@ -74,7 +80,7 @@ class OntoGraph:
             else:
                 error('Node '+str(Nname)+' already exists.')
         else:
-            print('nothing')
+            error('Node cannot be added datatype mismatch.')
 
     def insertNode(self,node,pre,succ):
         pass
@@ -111,14 +117,43 @@ class OntoGraph:
             #args[0]:name [1]:prev Node, [2]:next Node [3]:type=classID.xyz
             # addNode(name,p,n,typ)
             # p can be None type for the first node added to the graph.
+            pass
         elif action=='insertObject':
             pass
         else:
             error('Invalid assign command')
     
     def parseStmt(self):
-        pass
+        self.lines=self.fetchStatement('testInput')
+        self.lineTokens=self.SP.genToken(self.lines[0],True)
+        isThingSet=False
+        for i in self.lineTokens:
+            T=self.lineTokens[i]
+            gramType=[t.typ for t in T]
+            gramLevel=[t.level for t in T]
+            gramVal=[t.value for t in T]
+            print(gramType)
+            print(gramLevel)
+            print(gramVal)
+            if not(T[0].level=='COMMENT'):
+                if not isThingSet:
+                    if T[2].value=='Thing':
+                        self.addNode(T[0].value,p='Thing')
+                    else:
+                        self.addNode(T[0].value,p='Thing')
+                        print('First concept/object in a domain should be a sub-class of Thing.\nConcept '+T[0].value+' is defined a super-class ''Thing'' automatically.')
+                    isThingSet=True
+                    print([str(ii) for ii in self.nList])
+                else:
+                    
     
+    def fetchStatement(self,filename=None,fileext='.og'):
+        #if not filename==None:
+        fileHandle=open(self.currfilepath+'\\'+filename+fileext,'r')
+        lines=fileHandle.readlines()
+        fileHandle.close()
+        return lines
+        
     def update(self):
         # update something
         # getAdjacency
@@ -140,7 +175,7 @@ class OntoGraph:
     def getIncidence(self):
         pass
            
-if __name__=="__main__":
+if __name__=="__main__0":
     g=OntoGraph(name='FESS')
     print(g.currLength)
     g.addNode(Node("Node1","y"))
@@ -150,5 +185,8 @@ if __name__=="__main__":
     print(g.listNodes()) 
     g.addNode("Node3",'a','b')
     print(g.listNodes())
-
-
+    
+if __name__=="__main__":
+    g=OntoGraph(name='FESS')
+    g.parseStmt()
+    #print(g.lines)
