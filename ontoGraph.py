@@ -128,6 +128,7 @@ class OntoGraph:
         self.lineTokens=self.SP.genToken(self.lines[0],True)
         isThingSet=False
         for i in self.lineTokens:
+            Nlist=[str(ni) for ni in self.nList]
             T=self.lineTokens[i]
             gramType=[t.typ for t in T]
             gramLevel=[t.level for t in T]
@@ -145,8 +146,14 @@ class OntoGraph:
                     isThingSet=True
                     print([str(ii) for ii in self.nList])
                 else:
-                    
-    
+                    # first element (subject) has to be level:0, check already done inside statment parser.
+                    # start with second element (verb of the predicate). predicate = verb+noun
+                    if T[1].level=='k1':
+                        #check if the subject exists
+                        if (T[0].type=='0' and T[0].value in Nlist):
+                            # look ahead to check if k2 verbs exists
+                            
+                        
     def fetchStatement(self,filename=None,fileext='.og'):
         #if not filename==None:
         fileHandle=open(self.currfilepath+'\\'+filename+fileext,'r')
