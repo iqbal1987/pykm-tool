@@ -131,11 +131,20 @@ class OntoGraph:
             Nlist=[str(ni) for ni in self.nList]
             T=self.lineTokens[i]
             gramType=[t.typ for t in T]
-            gramLevel=[t.level for t in T]
+            gramLevel=[]
+            for t in T:
+                if not t.pos==[]:
+                    gramLevel.append(t.level+str(t.pos[0]))
+                else:
+                    gramLevel.append(t.level)
+                
             gramVal=[t.value for t in T]
-            print(gramType)
+            gramPos=[t.pos for t in T]
+            #print(gramType)
             print(gramLevel)
-            print(gramVal)
+            #print(gramPos)
+            #print(gramVal)
+            print('\n')
             if not(T[0].level=='COMMENT'):
                 if not isThingSet:
                     if T[2].value=='Thing':
@@ -144,14 +153,15 @@ class OntoGraph:
                         self.addNode(T[0].value,p='Thing')
                         print('First concept/object in a domain should be a sub-class of Thing.\nConcept '+T[0].value+' is defined a super-class ''Thing'' automatically.')
                     isThingSet=True
-                    print([str(ii) for ii in self.nList])
+                    #print([str(ii) for ii in self.nList])
                 else:
                     # first element (subject) has to be level:0, check already done inside statment parser.
                     # start with second element (verb of the predicate). predicate = verb+noun
                     if T[1].level=='k1':
                         #check if the subject exists
-                        if (T[0].type=='0' and T[0].value in Nlist):
+                        if (T[0].typ=='0' and T[0].value in Nlist):
                             # look ahead to check if k2 verbs exists
+                            pass
                             
                         
     def fetchStatement(self,filename=None,fileext='.og'):

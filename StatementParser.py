@@ -4,10 +4,34 @@ from callError import error
 class SParser:
     s=None
     # Keywords
+# OLD
+    """
     k1=['is-a','is','has', 'consists-of', 'comprises']
     k2=['sub-component-of', 'connected-to','related-to',
         'property', 'function', 'attribute']
     c1=['and','which','with','whose']
+    """
+# NEW
+    k0=['is-a','consists-of', 'comprises']
+    k1=['is']
+    k2=['has']
+    k3=['sub-component-of', 'connected-to','related-to']
+    k4=['property', 'function', 'attribute','qAttribute','effect','constraint','requirement']
+    k5=['forms-a']
+    k6=['sub-assembly']
+    c0=['and','which','with','whose']
+    c1=[' ']
+    
+    k_ind=7
+    c_ind=1
+    kt={}
+    # Assemble
+    for i in range(k_ind):
+        kt['k'+str(i)]=eval('k'+str(i))
+    for i in range(c_ind):
+        kt['c'+str(i)]=eval('c'+str(i))  
+    print(kt)
+    
     k=[] # user given k
 
     # Keyword associations
@@ -79,7 +103,7 @@ class SParser:
                 self.a=self.delimit(a)
 
     # text parsing
-        Token=collections.namedtuple('Token',['typ','value','level'])
+        Token=collections.namedtuple('Token',['typ','value','level','pos'])
         y={}
         p=[]
         for i in range(len(self.a)):
@@ -87,11 +111,14 @@ class SParser:
             #print(self.a[i][0])
             if not self.a[i][0]=='%':
                 for mo in re.finditer(self.tregx,self.a[i]):
+                    pos=None
+                    level=0
                     k=mo.lastgroup
                     v=mo.group(k)
                     #print(v)
                     if k=='ID':
                         k=v
+                    """    
                     if v in self.k1:
                        level='k1'
                        k='k'
@@ -101,16 +128,25 @@ class SParser:
                        level='c1'
                     else:
                        level=0
+                    """
+                        
+                    for t in self.kt:
+                        pos=[posi for posi,vali in enumerate(self.kt[t]) if vali==v]
+                        if pos:
+                            level=t
+                            break
+                    #print([a,ta])
                     if k=='PROP':
                         level=1
-                    p.append(Token(k,v,level))
+                    p.append(Token(k,v,level,pos))
             else:
-                    p.append(Token('COMMENT',self.a[i],'COMMENT'))
+                    p.append(Token('COMMENT',self.a[i],'COMMENT',None))
             y.update({i:p})    
         #[print(y[yy]) for yy in y]
         #print([p.level for yy in y for p in y[yy]])
         #print(y)
-        
+
+        """
         # some sanity check for statments: grammer rules
         scnt=1
         tobedel=[]
@@ -123,6 +159,7 @@ class SParser:
                 scnt+=1
         # Delete statements
         for ww in tobedel: del y[ww]
+        """
         return y
         
     def hashDefParser(self,a=None,delimitBool=False):
