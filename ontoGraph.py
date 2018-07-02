@@ -127,6 +127,8 @@ class OntoGraph:
         self.lines=self.fetchStatement('testInput')
         self.lineTokens=self.SP.genToken(self.lines[0],True)
         isThingSet=False
+        grules=self.getGramRules()
+        print(grules)
         for i in self.lineTokens:
             Nlist=[str(ni) for ni in self.nList]
             T=self.lineTokens[i]
@@ -145,6 +147,7 @@ class OntoGraph:
             #print(gramPos)
             #print(gramVal)
             print('\n')
+            
             if not(T[0].level=='COMMENT'):
                 if not isThingSet:
                     if T[2].value=='Thing':
@@ -162,8 +165,25 @@ class OntoGraph:
                         if (T[0].typ=='0' and T[0].value in Nlist):
                             # look ahead to check if k2 verbs exists
                             pass
+                    ap=self.checkgPattern(T,grules)
+                    print(ap)
+    def checkgPattern(self,T,grules):
+        if T[0]=='0':
+            for i in grules:
+                for j in i:
+                    print(j)
+        return 0
                             
-                        
+    def getGramRules(self):
+        fh=open('grules.txt','r')
+        g=[]
+        for line in fh:
+            l=line.replace('\n','')
+            g.append(l.split(','))
+        fh.close()
+        print(g)
+        return g
+        
     def fetchStatement(self,filename=None,fileext='.og'):
         #if not filename==None:
         fileHandle=open(self.currfilepath+'\\'+filename+fileext,'r')

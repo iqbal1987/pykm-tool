@@ -1,0 +1,8 @@
+A is-a Thing; A consists-of B,E;
+%B has property pB[sym=pBs,type=mech,val=10.99];
+%B is connected-to E;
+%C is-a sub-component-of B;
+%E has property C,D;
+%B has property f[sym=$\textbf{f}$];
+%C has property c[geom,c,5];
+%C is connected-to F which has-a qAttribute f[val=low,range=0,10];

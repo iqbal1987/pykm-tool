@@ -108,7 +108,8 @@ class SParser:
         p=[]
         for i in range(len(self.a)):
             p=[]
-            #print(self.a[i][0])
+            print(self.a[i])
+            print(self.a[i][0])
             if not self.a[i][0]=='%':
                 for mo in re.finditer(self.tregx,self.a[i]):
                     pos=None
