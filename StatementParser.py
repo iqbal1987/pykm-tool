@@ -71,14 +71,16 @@ class SParser:
         self.codeStyle='og'
 
     def delimit(self,s,delimiter=';'):
-        ds=re.split(delimiter,s)
+        lb=re.sub('\n','',s)
+        ds=re.split(delimiter,lb)
+        #print(s)
         return [i.strip() for i in ds if not (i=='' or i==' ')]
         
     def parse(self,s,k=None):
         ds=self.delimit(s)
-        print(ds)
+        #print(ds)
         sk=self.splitKeyword(ds)
-        print(sk)
+        #print(sk)
     
     def splitKeyword(self,s):
         skk= [self.delimit(st,delimiter='|'.join(self.fl)) for st in s]
@@ -108,8 +110,8 @@ class SParser:
         p=[]
         for i in range(len(self.a)):
             p=[]
-            print(self.a[i])
-            print(self.a[i][0])
+            #print(self.a[i])
+            #print(self.a[i][0])
             if not self.a[i][0]=='%':
                 for mo in re.finditer(self.tregx,self.a[i]):
                     pos=None

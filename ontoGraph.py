@@ -9,6 +9,7 @@ properties
 
 methods
 """
+import re
 from enum import Enum
 from node import Node
 from StatementParser import SParser
@@ -125,17 +126,18 @@ class OntoGraph:
     
     def parseStmt(self):
         self.lines=self.fetchStatement('testInput')
-        self.lineTokens=self.SP.genToken(self.lines[0],True)
+        self.lineTokens=self.SP.genToken(self.lines,True)
         isThingSet=False
         grules=self.getGramRules()
-        print(grules)
+        #print(grules)
+        #print(self.lineTokens)
         for i in self.lineTokens:
             Nlist=[str(ni) for ni in self.nList]
             T=self.lineTokens[i]
             gramType=[t.typ for t in T]
             gramLevel=[]
             for t in T:
-                if not t.pos==[]:
+                if not (t.pos==[] or t.pos==None):
                     gramLevel.append(t.level+str(t.pos[0]))
                 else:
                     gramLevel.append(t.level)
@@ -166,12 +168,58 @@ class OntoGraph:
                             # look ahead to check if k2 verbs exists
                             pass
                     ap=self.checkgPattern(T,grules)
-                    print(ap)
+                    #print(ap)
     def checkgPattern(self,T,grules):
-        if T[0]=='0':
-            for i in grules:
-                for j in i:
-                    print(j)
+        newset=[]
+        tmprules=grules
+        found=False
+        innerLoop=False
+        changenewset=True
+        lenT=len(T)
+        print(lenT)
+        print(T)
+        if T[0].level==0:
+            #while not found:
+                posid=0
+                for i in T:
+                    print(tmprules)
+                    for j in range(len(tmprules)):
+                        if len(i.pos)>0:
+                            strlevel=str(i.level)+str(i.pos[0])
+                        else:
+                            strlevel=str(i.level)
+
+                        if re.search('k',str(tmprules[j][posid])):
+                            strrules=str(tmprules[j][posid])
+                        elif (re.search('\?',str(tmprules[j][posid])) or re.search('!',str(tmprules[j][posid])) or re.search('\*',str(tmprules[j][posid]))):
+                            innerLoop=True
+                            changenewset=False
+                        else:
+                            strrules=str(tmprules[j][posid])
+                        #print(innerLoop)
+                        #print(strlevel+' :: '+strrules)
+                        if not innerLoop:
+                            if strlevel==strrules:   
+                                newset.append(tmprules[j])
+                                #print('match')
+                        else:
+                            innerLoop=False
+                            print('do other stuff')
+                            
+                    
+                    tmprules=newset
+                    if changenewset:
+                        newset=[]
+                    else:
+                        changenewset=True
+                        
+                    print(posid)        
+                    posid+=1
+                    #print(newset)
+                if posid==lenT:
+                    #print(newset)
+                    found=True
+                    
         return 0
                             
     def getGramRules(self):
@@ -189,7 +237,12 @@ class OntoGraph:
         fileHandle=open(self.currfilepath+'\\'+filename+fileext,'r')
         lines=fileHandle.readlines()
         fileHandle.close()
-        return lines
+        l=''
+        if len(lines)>1:
+            for ll in lines:
+                l=l+ll
+        #print(l)    
+        return l
         
     def update(self):
         # update something
